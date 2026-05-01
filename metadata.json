@@ -1,0 +1,6 @@
+{
+  "name": "musicGPT - AI Music Generator",
+  "description": "Crie músicas com Inteligência Artificial usando a API da Suno.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}

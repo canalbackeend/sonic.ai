@@ -1,0 +1,28 @@
+import { StylePreset } from "../types";
+
+export const stylePresets: StylePreset[] = [
+  { name: "Synthwave", tags: "80s synthwave, electronic, neon, retro, futuristic, drum machine, analog synths" },
+  { name: "Cyberpunk", tags: "dark industrial, techno, cinematic, aggressive synths, heavy bass, futuristic, glitch" },
+  { name: "K-Pop", tags: "k-pop, upbeat, dance, catchy, polished, bright, various vocal styles" },
+  { name: "J-Pop", tags: "j-pop, anime style, energetic, high bpm, electronic elements, colorful" },
+  { name: "Pop Americano", tags: "american pop, mainstream, catchyhooks, polished production, electronic elements, upbeat, radio-friendly" },
+  { name: "Indie Pop", tags: "indie pop, dreamy, synth-laden, atmospheric, indie vibes, modern, emotional, alternative" },
+  { name: "R&B / Soul", tags: "modern r&b, soul, smooth, sensual, grooviness, deep bass, lush harmonies" },
+  { name: "UK Drill", tags: "uk drill, dark, sliding 808s, aggressive, fast lyrics, rhythmic, cold atmosphere" },
+  { name: "Afrobeats", tags: "afrobeats, west african rhythms, infectious, danceable, upbeat, colorful" },
+  { name: "Reggaeton", tags: "reggaeton, dembow rhythm, latin, urban, danceable, club vibe" },
+  { name: "Sertanejo", tags: "sertanejo, brazilian pop, acoustic guitar, emotional, accordion, modern production" },
+  { name: "Funk RJ", tags: "funk carioca, brazilian funk, baita, heavy bass, high energy, danceable, 150bpm" },
+  { name: "Samba", tags: "brazilian samba, pandeiro, roda de samba, classic brazilian, acoustic, festive" },
+  { name: "Pagode", tags: "brazilian pagode, samba, cavaquinho, melodic, acoustic guitar, festive, love songs" },
+  { name: "Bossa Nova", tags: "bossa nova, brazilian jazz, soft guitar, gentle rhythm, sophisticated, romantic" },
+  { name: "Brega", tags: "brazilian brega, romantic forró, accordion, forró, love ballads, emotional" },
+  { name: "Forró", tags: "forró, brazilian northeast, accordion, zabumba, sanfona, festive, rhythmic" },
+  { name: "Carimbó", tags: "carimbó, northern brazilian, folk, accordion, tradicional, festive" },
+  { name: "Calipso", tags: "caribbean calypso, steel drums, upbeat, tropical, beach vibe, danceable" },
+  { name: "Axé", tags: "brazilian axé, upbeat, beach, festive, danceable, summer, tropical" },
+  { name: "Folk Indie", tags: "indie folk, acoustic guitar, melodic, storytelling, soft vocals, organic, warm, heartfelt, alternative" },
+  { name: "Good Vibes", tags: "brazilian pop, reggae-pop, melodic, acoustic guitar, romantic, good vibes" },
+  { name: "Rock", tags: "rock, electric guitar, drums, band, energetic, classic rock, powerful" },
+  { name: "Heavy Metal", tags: "heavy metal, distorted guitars, aggressive drums, powerful, fast, dark" },
+];
