@@ -10,6 +10,7 @@ import { LyricsInput } from "./components/form/LyricsInput";
 import { AdvancedSettings } from "./components/form/AdvancedSettings";
 import { UploadCover } from "./components/form/UploadCover";
 import { Toggle } from "./components/ui/Toggle";
+import { LoginScreen } from "./components/auth/LoginScreen";
 
 export interface TrackGroup {
   title: string;
@@ -71,6 +72,14 @@ const groupTracksByDate = (tracks: Track[]): TrackGroup[] => {
 };
 
 export default function App() {
+  // Auth state
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("sonic_ai_auth") === "true";
+    }
+    return false;
+  });
+
   // Form state
   const [prompt, setPrompt] = useState("");
   const [tags, setTags] = useState("");
@@ -629,6 +638,10 @@ const handleMashupTrack = async (track: Track) => {
     setIsGenerating(false);
   }
 };
+
+  if (!isAuthenticated) {
+    return <LoginScreen onLogin={() => setIsAuthenticated(true)} />;
+  }
 
   return (
     <div className="flex flex-col xl:flex-row h-screen w-full bg-[#050505] text-white font-sans overflow-hidden selection:bg-[#00D1FF]/30">

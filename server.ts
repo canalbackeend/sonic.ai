@@ -11,6 +11,18 @@ async function startServer() {
 
   app.use(express.json());
 
+  // Login endpoint
+  app.post("/api/login", (req, res) => {
+    const { password } = req.body;
+    const validPassword = process.env.APP_PASSWORD || "sonicai123";
+
+    if (password === validPassword) {
+      res.json({ success: true });
+    } else {
+      res.status(401).json({ error: "Senha incorreta" });
+    }
+  });
+
   // API Route for Suno
   app.post("/api/generate", async (req, res) => {
     try {

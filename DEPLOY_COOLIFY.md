@@ -75,9 +75,14 @@ Adicione as seguintes variÃ¡veis:
 NODE_ENV=production
 PORT=3000
 APP_URL=https://seudominio.com  (substitua pelo seu domÃ­nio ou IP)
+APP_PASSWORD=sua_senha_segura_aqui
 SUNO_API_KEY=sua_chave_aqui
 SUNO_API_URL=https://api.sunoapi.org/api/v1/generate
 ```
+
+> **Importante**:
+> - `APP_PASSWORD`: Crie uma senha segura para acesso ao app
+> - `SUNO_API_KEY`: Obtenha em sunoapi.org
 
 > **Importante**: NÃ£ouse `SUNO_API_KEY` real - obtenha em sunoapi.org
 
