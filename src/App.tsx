@@ -168,6 +168,16 @@ export default function App() {
     localStorage.setItem("sonic_ai_tracks", JSON.stringify(tracks));
   }, [tracks]);
 
+  // Sync currentTrack when tracks change
+  useEffect(() => {
+    if (currentTrack && tracks.length > 0) {
+      const updated = tracks.find(t => t.id === currentTrack.id);
+      if (updated && updated.audio_url && updated.audio_url !== currentTrack.audio_url) {
+        setCurrentTrack(updated);
+      }
+    }
+  }, [tracks]);
+
   // Fetch credits on mount
   useEffect(() => {
     const fetchCredits = async () => {
@@ -283,20 +293,9 @@ const updatedPrev = withoutPlaceholder.map(t => {
                           return t;
                        });
 
-                       const finalTracks = [...newActualTracks, ...updatedPrev];
-                      
-                      setCurrentTrack(curr => {
-                          if (curr && curr.id === taskId && newActualTracks.length > 0) {
-                              return newActualTracks[0];
-                          }
-                          if (curr && curr.taskId === taskId) {
-                              const match = finalTracks.find(t => t.id === curr.id);
-                              if (match) return match;
-                          }
-                          return curr;
-                      });
-                      
-                      return finalTracks;
+const finalTracks = [...newActualTracks, ...updatedPrev];
+                       
+                       return finalTracks;
                   } else {
                      return prev.map(t => t.taskId === taskId ? { ...t, status: newStatus } : t);
                   }
