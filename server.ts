@@ -5,9 +5,11 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+
 async function startServer() {
   const app = express();
-  const PORT = 3000;
+  const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
 
   app.use(express.json());
 
@@ -525,7 +527,9 @@ async function startServer() {
     });
     app.use(vite.middlewares);
   } else {
-    const distPath = path.resolve(process.cwd(), 'dist');
+    const baseDir = process.cwd();
+    const distPath = path.join(baseDir, 'dist');
+    console.log('Base dir:', baseDir);
     console.log('Serving static files from:', distPath);
     app.use(express.static(distPath));
     app.get('*', (req, res) => {
