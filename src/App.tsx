@@ -260,24 +260,24 @@ const newStatus = data.data.status;
                         status: newStatus
                       }));
                       
-                      const updatedPrev = withoutPlaceholder.map(t => {
-                         if (t.taskId === taskId) {
-                            const match = sunoData.find(st => st.id === t.id);
-                            if (match) {
-                               return { 
-                                 ...t, 
-                                 audio_url: match.audioUrl || match.streamAudioUrl || "", 
-                                 image_url: match.imageUrl || "", 
-                                 video_url: match.videoUrl || t.video_url || "",
-                                 lyrics: match.lyrics || match.metadata?.prompt || t.lyrics || "",
-                                 status: newStatus 
-                               };
-                            }
-                         }
-                         return t;
-                      });
+const updatedPrev = withoutPlaceholder.map(t => {
+                          if (t.taskId === taskId) {
+                             const match = filteredSunoData.find(st => st.id === t.id);
+                             if (match) {
+                                return { 
+                                  ...t, 
+                                  audio_url: match.audioUrl || match.streamAudioUrl || "", 
+                                  image_url: match.imageUrl || "", 
+                                  video_url: match.videoUrl || t.video_url || "",
+                                  lyrics: match.lyrics || match.metadata?.prompt || t.lyrics || "",
+                                  status: newStatus 
+                                };
+                             }
+                          }
+                          return t;
+                       });
 
-                      const finalTracks = [...newActualTracks, ...updatedPrev];
+                       const finalTracks = [...newActualTracks, ...updatedPrev];
                       
                       setCurrentTrack(curr => {
                           if (curr && curr.id === taskId && newActualTracks.length > 0) {
