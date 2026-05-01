@@ -80,6 +80,8 @@ export default function App() {
     return false;
   });
 
+  const generateSingleRef = useRef(false);
+
   // Form state
   const [prompt, setPrompt] = useState("");
   const [tags, setTags] = useState("");
@@ -103,6 +105,10 @@ export default function App() {
   const [lyricsTaskId, setLyricsTaskId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [generateSingle, setGenerateSingle] = useState(false);
+  
+  useEffect(() => {
+    generateSingleRef.current = generateSingle;
+  }, [generateSingle]);
   
   // Tracks state
   const [tracks, setTracks] = useState<Track[]>(() => {
@@ -231,15 +237,17 @@ export default function App() {
           if (res.ok) {
              const data = await res.json();
              if (data?.data && data.data.taskId === taskId) {
-               const newStatus = data.data.status;
-               const sunoData: any[] = data.data.response?.sunoData || [];
+const newStatus = data.data.status;
+                const sunoData: any[] = data.data.response?.sunoData || [];
+                const useSingle = generateSingleRef.current;
+                const filteredSunoData = useSingle ? [sunoData[0]] : sunoData;
 
-               setTracks(prev => {
-                  if (sunoData.length > 0) {
-                      const withoutPlaceholder = prev.filter(t => !(t.taskId === taskId && t.id === taskId));
-                      const knownIds = new Set(prev.map(t => t.id));
-                      
-                      const newActualTracks = sunoData.filter(st => !knownIds.has(st.id)).map(st => ({
+                setTracks(prev => {
+                   if (filteredSunoData.length > 0) {
+                       const withoutPlaceholder = prev.filter(t => !(t.taskId === taskId && t.id === taskId));
+                       const knownIds = new Set(prev.map(t => t.id));
+                       
+                       const newActualTracks = filteredSunoData.filter(st => !knownIds.has(st.id)).map(st => ({
                         id: st.id,
                         taskId: taskId,
                         title: st.title || prev.find(t => t.taskId === taskId)?.title || "Track",
