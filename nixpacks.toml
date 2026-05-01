@@ -1,5 +1,5 @@
 [start]
-cmd = "NODE_ENV=production npm run start"
+cmd = "NODE_ENV=production node dist/server.cjs"
 ready_port = 3000
 
 [build]
