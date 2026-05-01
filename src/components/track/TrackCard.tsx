@@ -142,16 +142,19 @@ export function TrackCard({
         >
           {!hasAudio ? <Loader2 className="w-5 h-5 animate-spin"/> : isPlaying && isCurrentTrack ? <Pause className="w-5 h-5"/> : <Play className="w-5 h-5 ml-0.5" />}
         </button>
-        <a 
-          href={track.audio_url || '#'} 
-          download={`${track.title}.mp3`}
-          target={track.audio_url ? '_blank' : '_self'}
-          rel="noreferrer"
+        <button 
+          onClick={() => {
+            if (track.audio_url) {
+              // iOS-friendly: open in new tab instead of download
+              window.open(track.audio_url, '_blank');
+            }
+          }}
+          disabled={!hasAudio}
           className={`p-4 rounded-full border border-white/10 inline-flex text-white transition-all ${!hasAudio ? 'opacity-50 cursor-not-allowed pointer-events-none' : 'hover:bg-[#00D1FF] hover:text-black hover:border-transparent'}`}
-          title="Download MP3"
+          title="Abrir no Player"
         >
           <Download className="w-5 h-5" />
-        </a>
+        </button>
       </div>
     </div>
   );
