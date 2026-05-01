@@ -49,6 +49,10 @@ const calculateDateKey = (track: Track, index: number): "today" | "yesterday" | 
 };
 
 const groupTracksByDate = (tracks: Track[]): TrackGroup[] => {
+  if (!Array.isArray(tracks)) {
+    return [];
+  }
+
   const groups: { today: Track[]; yesterday: Track[]; thisWeek: Track[]; older: Track[] } = {
     today: [],
     yesterday: [],
@@ -57,6 +61,7 @@ const groupTracksByDate = (tracks: Track[]): TrackGroup[] => {
   };
   
   tracks.forEach((track, index) => {
+    if (!track || typeof track !== 'object') return;
     const key = calculateDateKey(track, index);
     groups[key].push(track);
   });
@@ -131,8 +136,15 @@ export default function App() {
       }
     }
     return [];
-  });
-  
+});
+   
+  // Ref para polling (evita re-criação do useEffect)
+  const tracksRef = useRef<Track[]>(tracks);
+
+  useEffect(() => {
+    tracksRef.current = tracks;
+  }, [tracks]);
+   
   // Player state
   const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -165,7 +177,11 @@ export default function App() {
 
   // Persistence: Save tracks to localStorage whenever they change
   useEffect(() => {
-    localStorage.setItem("sonic_ai_tracks", JSON.stringify(tracks));
+    try {
+      localStorage.setItem("sonic_ai_tracks", JSON.stringify(tracks));
+    } catch (err) {
+      console.error("Failed to save tracks to localStorage:", err);
+    }
   }, [tracks]);
 
   // Sync currentTrack when tracks change
@@ -234,82 +250,96 @@ export default function App() {
     }
   };
 
-  // Poll for unfinished tracks or tracks that are generating videos
+// Poll for unfinished tracks or tracks that are generating videos
   useEffect(() => {
-    const pendingTaskIds = Array.from(new Set(tracks
-      .filter(t => t.taskId && (
-        !["SUCCESS", "GENERATE_AUDIO_FAILED", "CREATE_TASK_FAILED"].includes(t.status) ||
-        (t.status === 'SUCCESS' && videoGeneratingIds.has(t.id) && !t.video_url)
-      ))
-      .map(t => t.taskId as string)
-    ));
+    let intervalId: ReturnType<typeof setInterval> | null = null;
 
-    if (pendingTaskIds.length === 0) return;
+    const runPolling = () => {
+      const currentTracks = tracksRef.current;
+      const pendingTaskIds = Array.from(new Set(currentTracks
+        .filter(t => t.taskId && (
+          !["SUCCESS", "GENERATE_AUDIO_FAILED", "CREATE_TASK_FAILED"].includes(t.status) ||
+          (t.status === 'SUCCESS' && videoGeneratingIds.has(t.id) && !t.video_url)
+        ))
+        .map(t => t.taskId as string)
+      ));
 
-    const interval = setInterval(async () => {
-      try {
-        for (const taskId of pendingTaskIds) {
+      if (pendingTaskIds.length === 0) return;
+
+      pendingTaskIds.forEach(async (taskId) => {
+        try {
           const res = await fetch(`/api/status?taskId=${taskId}`);
           if (res.ok) {
-             const data = await res.json();
-             if (data?.data && data.data.taskId === taskId) {
-const newStatus = data.data.status;
-                const sunoData: any[] = data.data.response?.sunoData || [];
-                const useSingle = localStorage.getItem("sonic_generate_single") === "true";
-                const filteredSunoData = useSingle ? [sunoData[0]] : sunoData;
+            const data = await res.json();
+            if (data?.data && data.data.taskId === taskId) {
+              const newStatus = data.data.status;
+              const sunoData: any[] = data.data.response?.sunoData || [];
+              const useSingle = localStorage.getItem("sonic_generate_single") === "true";
+              const filteredSunoData = useSingle ? [sunoData[0]] : sunoData;
 
-                setTracks(prev => {
-                   if (filteredSunoData.length > 0) {
-                       const withoutPlaceholder = prev.filter(t => !(t.taskId === taskId && t.id === taskId));
-                       const knownIds = new Set(prev.map(t => t.id));
-                       
-                       const newActualTracks = filteredSunoData.filter(st => !knownIds.has(st.id)).map(st => ({
-                        id: st.id,
-                        taskId: taskId,
-                        title: st.title || prev.find(t => t.taskId === taskId)?.title || "Track",
-                        audio_url: st.audioUrl || st.streamAudioUrl || "",
-                        image_url: st.imageUrl || "",
-                        video_url: st.videoUrl || "",
-                        tags: st.tags || prev.find(t => t.taskId === taskId)?.tags || "",
-                        prompt: st.prompt || prev.find(t => t.taskId === taskId)?.prompt || "",
-                        lyrics: st.lyrics || st.metadata?.prompt || "",
-                        status: newStatus
-                      }));
-                      
-const updatedPrev = withoutPlaceholder.map(t => {
-                          if (t.taskId === taskId) {
-                             const match = filteredSunoData.find(st => st.id === t.id);
-                             if (match) {
-                                return { 
-                                  ...t, 
-                                  audio_url: match.audioUrl || match.streamAudioUrl || "", 
-                                  image_url: match.imageUrl || "", 
-                                  video_url: match.videoUrl || t.video_url || "",
-                                  lyrics: match.lyrics || match.metadata?.prompt || t.lyrics || "",
-                                  status: newStatus 
-                                };
-                             }
-                          }
-                          return t;
-                       });
+              setTracks(prev => {
+                try {
+                  if (filteredSunoData.length > 0) {
+                    const withoutPlaceholder = prev.filter(t => !(t.taskId === taskId && t.id === taskId));
+                    const knownIds = new Set(prev.map(t => t.id));
+                    
+                    const newActualTracks = filteredSunoData.filter(st => !knownIds.has(st.id)).map(st => ({
+                      id: st.id,
+                      taskId: taskId,
+                      title: st.title || prev.find(t => t.taskId === taskId)?.title || "Track",
+                      audio_url: st.audioUrl || st.streamAudioUrl || "",
+                      image_url: st.imageUrl || "",
+                      video_url: st.videoUrl || "",
+                      tags: st.tags || prev.find(t => t.taskId === taskId)?.tags || "",
+                      prompt: st.prompt || prev.find(t => t.taskId === taskId)?.prompt || "",
+                      lyrics: st.lyrics || st.metadata?.prompt || "",
+                      status: newStatus
+                    }));
+                    
+                    const updatedPrev = withoutPlaceholder.map(t => {
+                      if (t.taskId === taskId) {
+                        const match = filteredSunoData.find(st => st.id === t.id);
+                        if (match) {
+                          return { 
+                            ...t, 
+                            audio_url: match.audioUrl || match.streamAudioUrl || "", 
+                            image_url: match.imageUrl || "", 
+                            video_url: match.videoUrl || t.video_url || "",
+                            lyrics: match.lyrics || match.metadata?.prompt || t.lyrics || "",
+                            status: newStatus 
+                          };
+                        }
+                      }
+                      return t;
+                    });
 
-const finalTracks = [...newActualTracks, ...updatedPrev];
-                       
-                       return finalTracks;
+                    return [...newActualTracks, ...updatedPrev];
                   } else {
-                     return prev.map(t => t.taskId === taskId ? { ...t, status: newStatus } : t);
+                    return prev.map(t => t.taskId === taskId ? { ...t, status: newStatus } : t);
                   }
-               });
-             }
+                } catch (err) {
+                  console.error("Error in setTracks callback:", err);
+                  return prev;
+                }
+              });
+            }
           }
+        } catch (err) {
+          console.error("Polling error for task", taskId, err);
         }
-      } catch (err) {
-        console.error("Polling error", err);
-      }
+      });
+    };
+
+    runPolling();
+
+    intervalId = setInterval(() => {
+      runPolling();
     }, 5000);
 
-    return () => clearInterval(interval);
-  }, [tracks, videoGeneratingIds]);
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [videoGeneratingIds]);
 
   // Audio player control
   useEffect(() => {
