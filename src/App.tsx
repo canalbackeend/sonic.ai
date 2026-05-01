@@ -104,9 +104,15 @@ export default function App() {
   const [lyricsResults, setLyricsResults] = useState<{title: string; text: string; tags?: string; prompt?: string}[]>([]);
   const [lyricsTaskId, setLyricsTaskId] = useState<string | null>(null);
   const [error, setError] = useState("");
-  const [generateSingle, setGenerateSingle] = useState(false);
+  const [generateSingle, setGenerateSingle] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("sonic_generate_single") === "true";
+    }
+    return false;
+  });
   
   useEffect(() => {
+    localStorage.setItem("sonic_generate_single", String(generateSingle));
     generateSingleRef.current = generateSingle;
   }, [generateSingle]);
   
@@ -239,7 +245,7 @@ export default function App() {
              if (data?.data && data.data.taskId === taskId) {
 const newStatus = data.data.status;
                 const sunoData: any[] = data.data.response?.sunoData || [];
-                const useSingle = generateSingleRef.current;
+                const useSingle = localStorage.getItem("sonic_generate_single") === "true";
                 const filteredSunoData = useSingle ? [sunoData[0]] : sunoData;
 
                 setTracks(prev => {
