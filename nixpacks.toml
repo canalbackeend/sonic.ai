@@ -7,3 +7,4 @@ build_cmd = "npm run build"
 
 [env]
 NODE_ENV = "production"
+PORT = "3000"
