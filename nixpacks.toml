@@ -1,0 +1,6 @@
+[start]
+cmd = "npm run start"
+ready_port = 3000
+
+[build]
+build_cmd = "npm run build"
