@@ -102,6 +102,7 @@ export default function App() {
   const [lyricsResults, setLyricsResults] = useState<{title: string; text: string; tags?: string; prompt?: string}[]>([]);
   const [lyricsTaskId, setLyricsTaskId] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [generateSingle, setGenerateSingle] = useState(false);
   
   // Tracks state
   const [tracks, setTracks] = useState<Track[]>(() => {
@@ -399,12 +400,14 @@ export default function App() {
       };
 
       if (Array.isArray(data)) {
-        const mapped = data.map(enrichTrack);
+        const tracksToUse = generateSingle ? [data[0]] : data;
+        const mapped = tracksToUse.map(enrichTrack);
         setTracks(prev => [...mapped, ...prev]);
         if (!currentTrack && mapped.length > 0) setCurrentTrack(mapped[0]);
       } else if (data.data) {
         if (Array.isArray(data.data)) {
-          const mapped = data.data.map(enrichTrack);
+          const tracksToUse = generateSingle ? [data.data[0]] : data.data;
+          const mapped = tracksToUse.map(enrichTrack);
           setTracks(prev => [...mapped, ...prev]);
           if (!currentTrack && mapped.length > 0) setCurrentTrack(mapped[0]);
         } else if (typeof data.data === 'object') {
@@ -706,6 +709,13 @@ const handleMashupTrack = async (track: Track) => {
                 checked={makeInstrumental}
                 onChange={setMakeInstrumental}
               />
+              <div className="mt-3">
+                <Toggle
+                  label="Gerar apenas 1"
+                  checked={generateSingle}
+                  onChange={setGenerateSingle}
+                />
+              </div>
             </section>
 
             <AdvancedSettings
