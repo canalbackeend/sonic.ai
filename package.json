@@ -5,11 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
-    "start": "node dist/server.cjs",
-    "build": "vite build && tsc --noEmit",
+    "start": "node dist/server.js",
+    "build": "mkdir -p dist && npx tsc server.ts --outDir dist --module commonjs --target es2022 --esModuleInterop --skipLibCheck && npx vite build",
     "preview": "vite preview",
     "clean": "rm -rf dist",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit --skipLibCheck"
   },
   "dependencies": {
     "@google/genai": "^1.29.0",

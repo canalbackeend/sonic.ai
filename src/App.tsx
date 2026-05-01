@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
-import { Loader2, Disc3, Trash2, HelpCircle } from "lucide-react";
+import { Loader2, Disc3, Trash2, HelpCircle, LogOut } from "lucide-react";
 import { Track, AIModel, VocalGender } from "./types";
 import { LyricsModal } from "./components/modals/LyricsModal";
 import { HelpModal } from "./components/modals/HelpModal";
@@ -201,6 +201,13 @@ export default function App() {
     if (confirm("Deseja realmente apagar todo o histórico de músicas?")) {
       setTracks([]);
       localStorage.removeItem("sonic_ai_tracks");
+    }
+  };
+
+  const handleLogout = () => {
+    if (confirm("Deseja sair do aplicativo?")) {
+      localStorage.removeItem("sonic_ai_auth");
+      setIsAuthenticated(false);
     }
   };
 
@@ -847,6 +854,12 @@ const handleMashupTrack = async (track: Track) => {
         <header className="flex flex-col sm:flex-row sm:justify-between items-baseline mb-12 gap-4">
           <h2 className="text-4xl font-black uppercase italic">Studio Records</h2>
           <div className="flex items-center gap-6">
+            <button 
+              onClick={handleLogout}
+              className="text-[10px] font-bold opacity-30 hover:opacity-100 transition-opacity tracking-widest uppercase flex items-center gap-2 group"
+            >
+              <LogOut className="w-3 h-3 group-hover:text-red-500 transition-colors" /> Sair
+            </button>
             <button 
               onClick={clearHistory}
               className="text-[10px] font-bold opacity-30 hover:opacity-100 transition-opacity tracking-widest uppercase flex items-center gap-2 group"

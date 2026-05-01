@@ -42,8 +42,8 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-[#00D1FF]/10 mb-6">
             <Music className="w-10 h-10 text-[#00D1FF]" />
           </div>
-          <h1 className="text-5xl font-black uppercase tracking-tighter">
-            SONIC<span className="text-[#00D1FF]">.</span>AI
+          <h1 className="text-5xl font-black uppercase tracking-tighter text-white">
+            SONIC.AI
           </h1>
           <p className="text-xs uppercase tracking-[0.3em] mt-2 opacity-50 font-bold">
             Studio Access
