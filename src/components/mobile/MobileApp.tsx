@@ -6,9 +6,10 @@ import { MobileTrackList } from "./MobileTrackList";
 import { MobileCreateDrawer } from "./MobileCreateDrawer";
 import { MobileMiniPlayer } from "./MobileMiniPlayer";
 import { MobileCreditsScreen } from "./MobileCreditsScreen";
+import { MobileLogsScreen } from "./MobileLogsScreen";
 import { LyricsModal } from "../modals/LyricsModal";
 
-type TabType = "tracks" | "create" | "credits";
+type TabType = "tracks" | "create" | "credits" | "logs";
 
 export interface TrackGroup {
   title: string;
@@ -433,6 +434,10 @@ export function MobileApp({ onLogout }: MobileAppProps) {
             onGenerateLyrics={handleGenerateLyricsOnly}
             onGenerateCover={handleGenerateCover}
           />
+        )}
+
+        {activeTab === "logs" && (
+          <MobileLogsScreen onPlay={(track) => togglePlay(track)} />
         )}
 
         {activeTab === "credits" && (

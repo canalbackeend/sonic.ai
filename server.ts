@@ -2,10 +2,29 @@ import express from "express";
 import { createServer as createViteServer } from "vite";
 import path from "path";
 import dotenv from "dotenv";
+import fs from "fs";
 
 dotenv.config();
 
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+const LOGS_FILE = path.join(process.cwd(), 'tracks.json');
+
+// Funções para gerenciar logs
+function loadLogs() {
+  try {
+    if (fs.existsSync(LOGS_FILE)) {
+      const data = fs.readFileSync(LOGS_FILE, 'utf-8');
+      return JSON.parse(data);
+    }
+  } catch (e) {
+    console.error("Error loading logs:", e);
+  }
+  return { tracks: [] };
+}
+
+function saveLogs(data: { tracks: any[] }) {
+  fs.writeFileSync(LOGS_FILE, JSON.stringify(data, null, 2));
+}
 
 async function startServer() {
   const app = express();
@@ -176,6 +195,31 @@ async function startServer() {
         }
       } else if (data.id || data.taskId) {
         data.createdAt = now;
+      }
+
+      // Salvar no log do servidor
+      try {
+        const logs = loadLogs();
+        const tracksToSave = Array.isArray(data) ? data : (data.data ? (Array.isArray(data.data) ? data.data : [data.data]) : [data]);
+        
+        tracksToSave.forEach((track: any) => {
+          if (track.id) {
+            const existing = logs.tracks.findIndex((t: any) => t.id === track.id);
+            if (existing >= 0) {
+              logs.tracks[existing] = { ...logs.tracks[existing], ...track };
+            } else {
+              logs.tracks.unshift(track);
+            }
+          }
+        });
+        
+        if (logs.tracks.length > 500) {
+          logs.tracks = logs.tracks.slice(0, 500);
+        }
+        
+        saveLogs(logs);
+      } catch (logError) {
+        console.error("Error saving to log:", logError);
       }
       
       res.json(data);
@@ -515,6 +559,56 @@ async function startServer() {
       }
     } catch (error) {
       console.error("Mashup error:", error);
+      res.status(500).json({ error: String(error) });
+    }
+  });
+
+  // GET /api/logs - Listar todas as músicas
+  app.get("/api/logs", (req, res) => {
+    const logs = loadLogs();
+    res.json({ code: 200, data: logs.tracks });
+  });
+
+  // POST /api/logs - Adicionar música
+  app.post("/api/logs", (req, res) => {
+    try {
+      const track = req.body;
+      if (!track || !track.id) {
+        return res.status(400).json({ error: "Track info required" });
+      }
+      
+      const logs = loadLogs();
+      
+      // Verificar se já existe
+      const existing = logs.tracks.findIndex((t: any) => t.id === track.id || t.taskId === track.taskId);
+      if (existing >= 0) {
+        logs.tracks[existing] = { ...logs.tracks[existing], ...track };
+      } else {
+        logs.tracks.unshift(track);
+      }
+      
+      // Manter máximo de 500 músicas
+      if (logs.tracks.length > 500) {
+        logs.tracks = logs.tracks.slice(0, 500);
+      }
+      
+      saveLogs(logs);
+      res.json({ code: 200, data: track });
+    } catch (error) {
+      console.error("Error saving log:", error);
+      res.status(500).json({ error: String(error) });
+    }
+  });
+
+  // DELETE /api/logs/:id - Remover música
+  app.delete("/api/logs/:id", (req, res) => {
+    try {
+      const { id } = req.params;
+      const logs = loadLogs();
+      logs.tracks = logs.tracks.filter((t: any) => t.id !== id && t.taskId !== id);
+      saveLogs(logs);
+      res.json({ code: 200, msg: "Deleted" });
+    } catch (error) {
       res.status(500).json({ error: String(error) });
     }
   });

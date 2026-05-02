@@ -1,7 +1,7 @@
 import React from "react";
-import { Music2, Sparkles, Coins } from "lucide-react";
+import { Music2, Sparkles, Coins, FileText } from "lucide-react";
 
-type TabType = "tracks" | "create" | "credits";
+type TabType = "tracks" | "create" | "credits" | "logs";
 
 interface MobileTabBarProps {
   activeTab: TabType;
@@ -12,6 +12,7 @@ export function MobileTabBar({ activeTab, onTabChange }: MobileTabBarProps) {
   const tabs: { id: TabType; icon: React.ReactNode; label: string }[] = [
     { id: "tracks", icon: <Music2 className="w-5 h-5" />, label: "Tracks" },
     { id: "create", icon: <Sparkles className="w-5 h-5" />, label: "Criar" },
+    { id: "logs", icon: <FileText className="w-5 h-5" />, label: "Logs" },
     { id: "credits", icon: <Coins className="w-5 h-5" />, label: "Créditos" },
   ];
 
