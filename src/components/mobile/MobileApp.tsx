@@ -127,6 +127,56 @@ export function MobileApp({ onLogout }: MobileAppProps) {
     return () => clearInterval(interval);
   }, []);
 
+  // Polling para verificar status das músicas pendentes
+  useEffect(() => {
+    const pendingTaskIds = Array.from(new Set(
+      tracks
+        .filter(t => t.taskId && !["SUCCESS", "complete"].includes(t.status))
+        .map(t => t.taskId as string)
+    ));
+
+    if (pendingTaskIds.length === 0) return;
+
+    const checkStatus = async () => {
+      for (const taskId of pendingTaskIds) {
+        try {
+          const res = await fetch(`/api/status?taskId=${taskId}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data?.data) {
+              const newStatus = data.data.status;
+              const sunoData = data.data.response?.sunoData || [];
+
+              if (sunoData.length > 0) {
+                setTracks(prev => prev.map(t => {
+                  if (t.taskId === taskId) {
+                    const match = sunoData.find((s: any) => s.id === t.id);
+                    if (match) {
+                      return {
+                        ...t,
+                        audio_url: match.audioUrl || match.streamAudioUrl || t.audio_url,
+                        image_url: match.imageUrl || t.image_url,
+                        status: newStatus
+                      };
+                    }
+                    return { ...t, status: newStatus };
+                  }
+                  return t;
+                }));
+              }
+            }
+          }
+        } catch (e) {
+          console.error("Status check error", e);
+        }
+      }
+    };
+
+    checkStatus();
+    const pollInterval = setInterval(checkStatus, 5000);
+    return () => clearInterval(pollInterval);
+  }, [tracks]);
+
   useEffect(() => {
     if (audioRef.current) {
       if (isPlaying && currentTrack?.audio_url) {
