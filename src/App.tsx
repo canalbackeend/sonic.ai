@@ -6,6 +6,7 @@ import { HelpModal } from "./components/modals/HelpModal";
 import { NowPlayingBar } from "./components/player/NowPlayingBar";
 import { TrackList } from "./components/track/TrackList";
 import { StylePresets } from "./components/form/StylePresets";
+import { InstrumentSelector } from "./components/form/InstrumentSelector";
 import { LyricsInput } from "./components/form/LyricsInput";
 import { AdvancedSettings } from "./components/form/AdvancedSettings";
 import { UploadCover } from "./components/form/UploadCover";
@@ -102,6 +103,7 @@ export default function App() {
   const [audioWeight, setAudioWeight] = useState(0.8);
   const [weirdnessConstraint, setWeirdnessConstraint] = useState(0.5);
   const [negativeTags, setNegativeTags] = useState("");
+  const [selectedInstruments, setSelectedInstruments] = useState("");
   
   // Generation state
   const [isGenerating, setIsGenerating] = useState(false);
@@ -403,6 +405,30 @@ export default function App() {
     setIsGenerating(true);
     setError("");
 
+    // Generate negative tags from selected instruments
+    const instrumentNegativeTags: Record<string, string> = {
+      piano: "drums,bass,guitar,synth,electronic beats,electric guitar,drum machine",
+      guitar: "piano,drums,synth,electronic beats,drum machine,bass guitar",
+      drums: "piano,guitar,synth,electronic beats,no drums,acoustic only",
+      bass: "piano,electronic synth,drum machine,no bass",
+      synth: "acoustic piano,acoustic guitar,real drums,no synth",
+      vocals: "instrumental only,no vocals,no singing,instrumental"
+    };
+
+    const selectedInstrumentsList = selectedInstruments.split(",").filter(Boolean);
+    let finalNegativeTags = negativeTags;
+    
+    if (selectedInstrumentsList.length > 0) {
+      const excludedInstruments = selectedInstrumentsList
+        .filter(inst => instrumentNegativeTags[inst])
+        .map(inst => instrumentNegativeTags[inst])
+        .join(", ");
+      
+      finalNegativeTags = finalNegativeTags 
+        ? `${finalNegativeTags}, ${excludedInstruments}` 
+        : excludedInstruments;
+    }
+
     try {
       const response = await fetch("/api/generate", {
         method: "POST",
@@ -418,7 +444,7 @@ export default function App() {
           styleWeight,
           audioWeight,
           weirdnessConstraint,
-          negativeTags
+          negativeTags: finalNegativeTags
         })
       });
 
@@ -737,6 +763,13 @@ const handleMashupTrack = async (track: Track) => {
               />
 
               <StylePresets selectedTags={tags} onSelectTags={setTags} />
+              
+              <div className="mt-6">
+                <InstrumentSelector 
+                  value={selectedInstruments} 
+                  onChange={setSelectedInstruments} 
+                />
+              </div>
             </section>
             
             <LyricsInput

@@ -97,7 +97,11 @@ async function startServer() {
       payload.callBackUrl = `${baseUrl}/api/suno-webhook`;
 
       // Vocal gender hint
-      const genderHint = vocalGender === 'f' ? 'female vocals' : vocalGender === 'm' ? 'male vocals' : '';
+      const genderHint = 
+        vocalGender === 'f' ? 'female vocals' : 
+        vocalGender === 'm' ? 'male vocals' : 
+        vocalGender === 'duet' ? 'male and female vocals, duet' : 
+        '';
 
       // Handle custom Mode vs Description Mode
       if (lyrics && lyrics.trim().length > 0) {
