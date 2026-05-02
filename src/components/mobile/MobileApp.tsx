@@ -132,7 +132,7 @@ export function MobileApp({ onLogout }: MobileAppProps) {
   useEffect(() => {
     const pendingTaskIds = Array.from(new Set(
       tracks
-        .filter(t => t.taskId && !["SUCCESS", "complete"].includes(t.status))
+        .filter(t => t.taskId && !["SUCCESS", "COMPLETE", "complete"].includes(t.status))
         .map(t => t.taskId as string)
     ));
 
@@ -148,22 +148,41 @@ export function MobileApp({ onLogout }: MobileAppProps) {
               const newStatus = data.data.status;
               const sunoData = data.data.response?.sunoData || [];
 
-              if (sunoData.length > 0) {
-                setTracks(prev => prev.map(t => {
-                  if (t.taskId === taskId) {
-                    const match = sunoData.find((s: any) => s.id === t.id);
-                    if (match) {
-                      return {
-                        ...t,
-                        audio_url: match.audioUrl || match.streamAudioUrl || t.audio_url,
-                        image_url: match.imageUrl || t.image_url,
-                        status: newStatus
-                      };
-                    }
-                    return { ...t, status: newStatus };
-                  }
-                  return t;
+              if (sunoData.length > 0 && (newStatus === "SUCCESS" || newStatus === "COMPLETE")) {
+                // Criar tracks a partir dos dados da Suno
+                const newTracks: Track[] = sunoData.map((s: any) => ({
+                  id: s.id || s.audioId,
+                  taskId: taskId,
+                  title: s.title || "Sonic AI",
+                  audio_url: s.audioUrl || s.streamAudioUrl || "",
+                  image_url: s.imageUrl || "",
+                  tags: s.tags || "",
+                  prompt: s.prompt || "",
+                  status: newStatus,
+                  createdAt: new Date().toISOString(),
                 }));
+
+                // Remover tracks pendentes e adicionar as reais
+                setTracks(prev => [
+                  ...newTracks,
+                  ...prev.filter(t => t.taskId !== taskId || prev.some(p => p.id === t.id && ["SUCCESS", "COMPLETE"].includes(p.status)))
+                ]);
+
+                // Salvar no log do servidor
+                try {
+                  await fetch("/api/logs", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(newTracks)
+                  });
+                } catch (e) {
+                  console.error("Error saving log:", e);
+                }
+              } else {
+                // Apenas atualizar status
+                setTracks(prev => prev.map(t => 
+                  t.taskId === taskId ? { ...t, status: newStatus } : t
+                ));
               }
             }
           }
