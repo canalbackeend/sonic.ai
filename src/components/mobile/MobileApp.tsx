@@ -272,31 +272,21 @@ export function MobileApp({ onLogout }: MobileAppProps) {
       const responseData = await response.json();
       if (!response.ok) throw new Error(responseData.error || "Erro");
 
-      const enrichTrack = (track: any) => ({
-        id: track.id || track.taskId || `suno-${Date.now()}`,
-        taskId: track.taskId,
-        title: track.title || "Sonic AI Track",
-        audio_url: track.audio_url || "",
-        image_url: track.image_url || "",
-        tags: track.tags || finalTags,
-        prompt: track.prompt || data.prompt,
-        status: track.status || "submitted",
+      // Criar track temporária para mostrar imediatamente
+      const tempTrack: Track = {
+        id: responseData.data?.taskId || responseData.taskId || `temp-${Date.now()}`,
+        taskId: responseData.data?.taskId || responseData.taskId,
+        title: "Sonic AI Track",
+        audio_url: "",
+        image_url: "",
+        tags: finalTags,
+        prompt: data.prompt,
+        status: "PENDING",
         createdAt: new Date().toISOString(),
-      });
+      };
 
-      let newTracks: Track[] = [];
-      if (Array.isArray(responseData)) {
-        newTracks = responseData.map(enrichTrack);
-      } else if (responseData.data) {
-        if (Array.isArray(responseData.data))
-          newTracks = responseData.data.map(enrichTrack);
-        else newTracks = [enrichTrack(responseData.data)];
-      } else {
-        newTracks = [enrichTrack(responseData)];
-      }
-
-      setTracks((prev) => [...newTracks, ...prev]);
-      if (newTracks[0]) setCurrentTrack(newTracks[0]);
+      setTracks((prev) => [tempTrack, ...prev]);
+      setCurrentTrack(tempTrack);
       setActiveTab("tracks");
     } catch (err: any) {
       setError(err.message);
